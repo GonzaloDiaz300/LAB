@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package grpc;
+
+option go_package = "github.com/GonzaloDiaz300/LAB/central/proto";
+
+message NotiReq {
+    int32 solicitud = 1;
+}
+
+message NotiResp {
+    int32 respuesta = 1;
+}
+
+message InscritosReq {
+    int32 solicitud_2 = 1;
+}
+
+message InscritosResp {
+    int32 respuesta_2 = 1;
+}
+
+service Notificacion {
+    rpc Notificar(NotiReq) returns (NotiResp);
+    rpc Inscribir(InscritosReq) returns (InscritosResp);
+}
