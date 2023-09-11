@@ -15,8 +15,8 @@ import (
 	"google.golang.org/grpc"
 )
 
-var interesados int           // Variable global para modificar los interesados en obtener la key
-var interesados_iniciales = 0 // Variable para almacenar los interesados iniciales y no leer nuevamente el .txt
+var interesados int // Variable global para modificar los interesados en obtener la key
+var interesados_actuales = 0
 
 type america struct {
 	pb.UnimplementedNotificacionServer
@@ -24,13 +24,13 @@ type america struct {
 
 func (a *america) Notificar(ctx context.Context, in *pb.NotiReq) (*pb.NotiResp, error) {
 	fmt.Printf("Se envia el 1 de vuelta a la central\n")
-	crearInteresados(0)
+	crearInteresados(0) // Acá en vez de 0 tendría que ser el valor de usuarios sin registrar que devuelve la central, lo que se dá con la asincrona
 	return &pb.NotiResp{Respuesta: 1}, nil
 }
 
+// funcion para generar el numero de interesados en cada iteración, se llama cuando llaman la funcion de notificar
 func crearInteresados(no_registrados int) {
-
-	if interesados_iniciales == 0 {
+	if interesados_actuales == 0 {
 		fileName := "america/parametros_de_inicio.txt"
 
 		// Intenta abrir el archivo
@@ -53,12 +53,13 @@ func crearInteresados(no_registrados int) {
 				fmt.Println("Error al convertir a entero:", err)
 				return
 			}
-			interesados_iniciales = intValue
+			interesados_actuales = intValue
 			// Almacenar el valor entero globalmente
 		}
-		interesados = interesados_iniciales / 2
+		interesados = interesados_actuales / 2
 	} else {
-		interesados = (interesados_iniciales - (interesados - no_registrados)) / 2
+		interesados_actuales = interesados_actuales - (interesados - no_registrados)
+		interesados = interesados_actuales / 2
 	}
 	limiteInferior_interesados := math.Round(float64(interesados) - (float64(interesados) * 0.2))
 	limiteSuperior_interesados := math.Round(float64(interesados) + (float64(interesados) * 0.2))

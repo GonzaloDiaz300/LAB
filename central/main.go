@@ -18,6 +18,8 @@ import (
 var contador = 0
 var numero_iteraciones int
 var numero_llaves int
+var limiteInferior int
+var limiteSuperior int
 
 func enviarMensaje(servidor string, mensaje int, wg *sync.WaitGroup) {
 	defer wg.Done()
@@ -49,9 +51,9 @@ func crearLlaves(limiteInferior int, limiteSuperior int) int {
 
 func main() {
 
+	// Esto solo se hace la primera vez, por eso la condicional de contador < 1, asigna variables como el limite superior e inferior, el numero de iteraciones
+	// y el numero de llaves de la primera iteración
 	if contador < 1 {
-		var limiteInferior int
-		var limiteSuperior int
 
 		// Abre el archivo para lectura
 		archivo, err := os.Open("central/parametros_de_inicio.txt")
@@ -104,10 +106,29 @@ func main() {
 
 	servidores := []string{"50051", "50052", "50053", "50054"}
 	var wg sync.WaitGroup
-	for _, servidor := range servidores {
-		wg.Add(1)
-		go enviarMensaje(servidor, numero_llaves, &wg)
-	}
 
-	wg.Wait()
+	// Si el número de iteraciones que dice el documento es -1, entonces se repetirá para siempre, a lo mejor hay que ponerle alguna condición si es que
+	// todos los servidores ya estan abastecidos
+	if numero_iteraciones == -1 {
+		for {
+			for _, servidor := range servidores {
+				wg.Add(1)
+				go enviarMensaje(servidor, numero_llaves, &wg)
+			}
+			wg.Wait()
+			contador += 1
+		}
+	} else {
+		// se envían llaves las veces que pida el archivo, quizá cambie un poco al hacer la comunicacion asincrona
+		for contador < numero_iteraciones {
+			fmt.Printf("Iteración número: %d\n", contador+1)
+			numero_llaves = crearLlaves(limiteInferior, limiteSuperior)
+			for _, servidor := range servidores {
+				wg.Add(1)
+				go enviarMensaje(servidor, numero_llaves, &wg)
+			}
+			wg.Wait()
+			contador += 1
+		}
+	}
 }
