@@ -1,0 +1,15 @@
+FROM golang:latest
+
+WORKDIR /europa
+
+COPY go.mod go.sum ./
+COPY proto/*.go .
+COPY proto/europa.proto .
+
+RUN go mod download
+
+COPY main.go ./
+
+RUN go build -o europa_bin .
+
+ENTRYPOINT [ "/europa/europa_bin" ]
