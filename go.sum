@@ -1,7 +1,5 @@
 github.com/GonzaloDiaz300/LAB v0.0.0-20230912005804-afe64ac211d6 h1:mAFFhbfsUuZ23hkBriXdjSwAsBIDurIv5tfcc+bY+QA=
 github.com/GonzaloDiaz300/LAB v0.0.0-20230912005804-afe64ac211d6/go.mod h1:HsRrO8YcmTgpeScOhDK3lPmN6E9pLq+KasYnmY+ZA3Q=
-github.com/GonzaloDiaz300/LAB/europa v0.0.0-20230912005804-afe64ac211d6 h1:q1luCp2Ft5Z0ZpgyoaGSOTKO8ZrkN6zT4aVPxSxwkUA=
-github.com/GonzaloDiaz300/LAB/europa v0.0.0-20230912005804-afe64ac211d6/go.mod h1:H0llu67N/OhC+cPyuHiAQdcBvlVVyBXMVRrTCvlAwJ0=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/golang/protobuf v1.5.0/go.mod h1:FsONVRAS9T7sI+LIUmWTfcYkHO4aIWwzhcaSAoJOfIk=
