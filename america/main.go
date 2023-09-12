@@ -29,6 +29,12 @@ func failOnError(err error, msg string) {
 	}
 }
 
+func (a america) Inscribir(ctx context.Context, in *pb.InscritosReq) (*pb.InscritosResp, error) {
+    fmt.Printf("Se recibe inscripciones que no lograron pasar la cola\n")
+	interesados_actuales = interesados_actuales - (interesados - int(in.Solicitud_2))//700 = 700-(290-190)=600
+    return &pb.InscritosResp{Respuesta_2: 1}, nil
+}
+
 func (a *america) Notificar(ctx context.Context, in *pb.NotiReq) (*pb.NotiResp, error) {
 	fmt.Printf("Se envia el 1 de vuelta a la central para confirmar llegada de mensaje\n")
 	//aqui deberia procesarse la request
@@ -59,12 +65,9 @@ func crearInteresados (no_registrados int) int {
 			if err != nil {
 				fmt.Println("Error al convertir a entero:", err)
 			}
-			interesados_actuales = intValue
+			interesados_actuales = intValue//700
 			// Almacenar el valor entero globalmente
 		}
-		interesados = interesados_actuales / 2
-	} else {
-		interesados_actuales = interesados_actuales - (interesados - no_registrados)
 		interesados = interesados_actuales / 2
 	}
 	limiteInferior_interesados := math.Round(float64(interesados) - (float64(interesados) * 0.2))
@@ -78,7 +81,7 @@ func crearInteresados (no_registrados int) int {
 
 	interesados = numeroAleatorio
 	fmt.Println("Valor entero global:", interesados)
-	return interesados
+	return interesados//cambio
 }
 
 func encolarse(cupos int){
@@ -106,8 +109,8 @@ func encolarse(cupos int){
 	  
 	  ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	  defer cancel()
-	  
-	  body := []byte(strconv.Itoa(postulantes_finales))
+	  message := fmt.Sprintf("%d,%d", 50051, postulantes_finales)
+	  body := []byte(message)
 	  err = ch.PublishWithContext(ctx,
 		"",     // exchange
 		q.Name, // routing key

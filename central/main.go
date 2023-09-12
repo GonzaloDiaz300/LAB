@@ -111,7 +111,7 @@ func main(){
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	servidores := []string{"50051", "50052", "50056", "50054"}
+	servidores := []string{"50051","50052","50056","50054"}
 	var wg sync.WaitGroup
 	for _, servidor := range servidores {
         wg.Add(1)
@@ -152,14 +152,51 @@ func main(){
 	  )
 	  failOnError(err, "Failed to register a consumer")
 	  
-	  var forever chan struct{}
+	  var count int
+	  desiredMessageCount := 4
 	  
 	  go func() {
-		for d := range msgs {
-		  log.Printf("Received a message: %s", d.Body)
-		}
+		  for d := range msgs {
+			  log.Printf("Received a message: %s", d.Body)
+			  partes_mensaje := strings.Split(string(d.Body), ",")
+			  puerto, err1 := strconv.Atoi(partes_mensaje[0])
+			  if err1 != nil {
+				fmt.Printf("Error al splitear mensaje")
+				return
+			  }
+			  interesados, err2 := strconv.Atoi(partes_mensaje[1])
+			  if err2 != nil {
+				fmt.Printf("Error al splitear mensaje")
+				return
+			  }
+			  if numero_llaves > 0{
+				resultado := numero_llaves - interesados
+				if resultado < 0{
+					//Se ocuparon todas las llaves, entonces se envian todas las llaves restantes a ese servidor y se dejan 0 en la central
+					enviarInscripcion(numero_llaves,puerto)
+					numero_llaves := 0
+				}else if resultado > 0{
+					//Se ocuparon llaves pero no todas
+					enviarInscripcion(resultado,puerto)
+				}else{
+					//cantidad de llaves = interesados
+					enviarInscripcion(resultado,puerto)
+				}
+				count++
+			  	if count >= desiredMessageCount {
+					// Close the channel and exit the goroutine
+					ch.Close()
+					break
+				}
+			  }else{
+				count++
+				if count >= desiredMessageCount {
+					// Close the channel and exit the goroutine
+					ch.Close()
+					break
+				}
+			  }
+
+			  }
 	  }()
-	  
-	  log.Printf(" [*] Waiting for messages. To exit press CTRL+C")
-	  <-forever
 }
