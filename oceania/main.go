@@ -30,11 +30,17 @@ func failOnError(err error, msg string) {
 	}
 }
 
+func (a *oceania) Inscribir(ctx context.Context, in *pb.InscritosReq) (*pb.InscritosResp, error) {
+	fmt.Printf("Se recibe inscripciones que no lograron pasar la cola\n")
+	interesados_actuales = interesados_actuales - (interesados - int(in.Solicitud_2)) //700 = 700-(290-190)=600
+	return &pb.InscritosResp{Respuesta_2: 6}, nil
+}
+
 func (a *oceania) Notificar(ctx context.Context, in *pb.NotiReq) (*pb.NotiResp, error) {
-	fmt.Printf("Se envia el 4 de vuelta a la central para confirmar llegada de mensaje\n")
+	fmt.Printf("Se envia el 1 de vuelta a la central para confirmar llegada de mensaje\n")
 	//aqui deberia procesarse la request
 	go encolarse(int(in.Solicitud))
-	return &pb.NotiResp{Respuesta: 4}, nil
+	return &pb.NotiResp{Respuesta: 2}, nil
 }
 
 // funcion para generar el numero de interesados en cada iteración, se llama cuando llaman la funcion de notificar
@@ -107,8 +113,8 @@ func encolarse(cupos int) {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-
-	body := []byte(strconv.Itoa(postulantes_finales))
+	message := fmt.Sprintf("%d,%d", 50052, postulantes_finales)
+	body := []byte(message)
 	err = ch.PublishWithContext(ctx,
 		"",     // exchange
 		q.Name, // routing key

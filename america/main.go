@@ -33,7 +33,7 @@ func failOnError(err error, msg string) {
 func (a america) Inscribir(ctx context.Context, in *pb.InscritosReq) (*pb.InscritosResp, error) {
 	fmt.Printf("Se recibe inscripciones que no lograron pasar la cola\n")
 	interesados_actuales = interesados_actuales - (interesados - int(in.Solicitud_2)) //700 = 700-(290-190)=600
-	return &pb.InscritosResp{Respuesta_2: 1}, nil
+	return &pb.InscritosResp{Respuesta_2: 5}, nil
 }
 
 func (a *america) Notificar(ctx context.Context, in *pb.NotiReq) (*pb.NotiResp, error) {
