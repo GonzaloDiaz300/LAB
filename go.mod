@@ -4,7 +4,6 @@ go 1.21.1
 
 require (
 	github.com/GonzaloDiaz300/LAB v0.0.0-20230912005804-afe64ac211d6
-	github.com/GonzaloDiaz300/LAB/europa v0.0.0-20230912005804-afe64ac211d6
 	github.com/rabbitmq/amqp091-go v1.8.1
 	google.golang.org/grpc v1.58.0
 	google.golang.org/protobuf v1.31.0
