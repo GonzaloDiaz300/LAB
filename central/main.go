@@ -168,7 +168,7 @@ func main() {
 		nil,    // args
 	)
 	failOnError(err, "Failed to register a consumer")
-	var count int
+	var count = 0
 	desiredMessageCount := 4
 	var forever chan struct{}
 
@@ -192,18 +192,20 @@ func main() {
 					var wg sync.WaitGroup
 					//Se ocuparon todas las llaves, entonces se envian todas las llaves restantes a ese servidor y se dejan 0 en la central
 					wg.Add(1)
-					enviarInscripcion(numero_llaves, strconv.Itoa(puerto), &wg)
+					enviarInscripcion(-resultado, strconv.Itoa(puerto), &wg)
 					numero_llaves = 0
 				} else if resultado > 0 {
 					var wg sync.WaitGroup
 					//Se ocuparon llaves pero no todas
 					wg.Add(1)
-					enviarInscripcion(resultado, strconv.Itoa(puerto), &wg)
+					enviarInscripcion(0, strconv.Itoa(puerto), &wg)
+					numero_llaves = numero_llaves - interesados
 				} else {
 					//cantidad de llaves = interesados
 					var wg sync.WaitGroup
 					wg.Add(1)
-					enviarInscripcion(resultado, strconv.Itoa(puerto), &wg)
+					enviarInscripcion(0, strconv.Itoa(puerto), &wg)
+					numero_llaves = numero_llaves - interesados
 				}
 				wg.Wait()
 				count++
@@ -220,7 +222,7 @@ func main() {
 					break
 				}
 			}
-
+			fmt.Printf("\nQuedan %d llaves aún\n", numero_llaves)
 		}
 	}()
 

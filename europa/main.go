@@ -30,6 +30,7 @@ func failOnError(err error, msg string) {
 	}
 }
 
+// Puerto 50054
 func (a *europa) Inscribir(ctx context.Context, in *pb.InscritosReq) (*pb.InscritosResp, error) {
 	fmt.Printf("Se recibe inscripciones que no lograron pasar la cola\n")
 	interesados_actuales = interesados_actuales - (interesados - int(in.Solicitud_2)) //700 = 700-(290-190)=600
@@ -39,7 +40,7 @@ func (a *europa) Inscribir(ctx context.Context, in *pb.InscritosReq) (*pb.Inscri
 func (a *europa) Notificar(ctx context.Context, in *pb.NotiReq) (*pb.NotiResp, error) {
 	fmt.Printf("Se envia el 1 de vuelta a la central para confirmar llegada de mensaje\n")
 	//aqui deberia procesarse la request
-	go encolarse(int(in.Solicitud))
+	go encolarse(0)
 	return &pb.NotiResp{Respuesta: 3}, nil
 }
 
@@ -69,9 +70,6 @@ func crearInteresados(no_registrados int) int {
 			interesados_actuales = intValue
 			// Almacenar el valor entero globalmente
 		}
-		interesados = interesados_actuales / 2
-	} else {
-		interesados_actuales = interesados_actuales - (interesados - no_registrados)
 		interesados = interesados_actuales / 2
 	}
 	limiteInferior_interesados := math.Round(float64(interesados) - (float64(interesados) * 0.2))

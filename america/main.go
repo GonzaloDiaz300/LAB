@@ -30,6 +30,7 @@ func failOnError(err error, msg string) {
 	}
 }
 
+// Puerto 50051
 func (a america) Inscribir(ctx context.Context, in *pb.InscritosReq) (*pb.InscritosResp, error) {
 	fmt.Printf("Se recibe inscripciones que no lograron pasar la cola\n")
 	interesados_actuales = interesados_actuales - (interesados - int(in.Solicitud_2)) //700 = 700-(290-190)=600
@@ -39,7 +40,7 @@ func (a america) Inscribir(ctx context.Context, in *pb.InscritosReq) (*pb.Inscri
 func (a *america) Notificar(ctx context.Context, in *pb.NotiReq) (*pb.NotiResp, error) {
 	fmt.Printf("Se envia el 1 de vuelta a la central para confirmar llegada de mensaje\n")
 	//aqui deberia procesarse la request
-	go encolarse(int(in.Solicitud))
+	go encolarse(0)
 	return &pb.NotiResp{Respuesta: 1}, nil
 }
 
