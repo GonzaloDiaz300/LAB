@@ -39,9 +39,10 @@ func enviarMensaje(servidor string, mensaje int, wg *sync.WaitGroup) {
 	}
 	fmt.Printf("Enviando mensaje a %s: %d\n", servidor, mensaje)
 	fmt.Printf("Se recibió %d\n ", res.Respuesta)
+	return
 }
 
-func enviarInscripcion(mensaje int, servidor string, wg *sync.WaitGroup) {
+func enviarInscripcion(mensaje int, servidor string) {
 	conn, err := grpc.Dial("localhost:"+servidor, grpc.WithInsecure())
 	if err != nil {
 		fmt.Printf("Error al conectar con %s: %v\n", servidor, err)
@@ -55,6 +56,7 @@ func enviarInscripcion(mensaje int, servidor string, wg *sync.WaitGroup) {
 	}
 	fmt.Printf("Enviando mensaje a %s: %d\n", servidor, mensaje)
 	fmt.Printf("Se recibió %d\n ", res.Respuesta_2)
+	return
 }
 
 func crearLlaves(limiteInferior int, limiteSuperior int) int {
@@ -74,11 +76,9 @@ var limiteInferior int
 var limiteSuperior int
 
 func main() {
-
-	// Esto solo se hace la primera vez, por eso la condicional de contador < 1, asigna variables como el limite superior e inferior, el numero de iteraciones
-	// y el numero de llaves de la primera iteración
+    // El código de configuración inicial (lectura de archivo, inicialización de variables, etc.) permanece igual
+	totalIteraciones := 0
 	if contador < 1 {
-
 		// Abre el archivo para lectura
 		archivo, err := os.Open("central/parametros_de_inicio.txt")
 		if err != nil {
@@ -119,22 +119,12 @@ func main() {
 				fmt.Println("Error al convertir a entero en la segunda línea:", linea)
 				return
 			}
-			numero_iteraciones = iteraciones
+			totalIteraciones = iteraciones
 
 			fmt.Printf("Número interaciones: %d\n", iteraciones)
 		}
 		numero_llaves = crearLlaves(limiteInferior, limiteSuperior)
 	} // Finaliza la lectura del archivo
-
-	// Avisa a los servidores que tiene cupo mediante comunicación asíncrona
-	servidores := []string{"50051", "50052", "50056", "50054"}
-	var wg sync.WaitGroup
-	for _, servidor := range servidores {
-		wg.Add(1)
-		go enviarMensaje(servidor, numero_llaves, &wg)
-	}
-
-	wg.Wait()
 
 	// Abre la cola rabbit para permitir una comunicación asíncrona
 	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
@@ -144,9 +134,7 @@ func main() {
 	ch, err := conn.Channel()
 	failOnError(err, "Failed to open a channel")
 	defer ch.Close()
-	//Setting up is the same as the publisher; we open a connection and a channel,
-	//and declare the queue from which we're going to consume. Note this matches up
-	//with the queue that send publishes to.
+
 	q, err := ch.QueueDeclare(
 		"hello", // name
 		false,   // durable
@@ -156,8 +144,7 @@ func main() {
 		nil,     // arguments
 	)
 	failOnError(err, "Failed to declare a queue")
-	//We're about to tell the server to deliver us the messages from the queue. Since it will push us messages asynchronously,
-	//we will read the messages from a channel (returned by amqp::Consume) in a goroutine.
+
 	msgs, err := ch.Consume(
 		q.Name, // queue
 		"",     // consumer
@@ -168,11 +155,22 @@ func main() {
 		nil,    // args
 	)
 	failOnError(err, "Failed to register a consumer")
-	var count = 0
-	desiredMessageCount := 4
-	var forever chan struct{}
+	
+    for iteracion := 0; iteracion < totalIteraciones; iteracion++ {
+        // Lógica de cada iteración aquí
+		log.Printf("Received a message: %d", iteracion)
+        // Avisa a los servidores que tiene cupo mediante comunicación asíncrona
 
-	go func() {
+        servidores := []string{"50051", "50052", "50056", "50054"}
+        var wg sync.WaitGroup
+        for _, servidor := range servidores {
+            wg.Add(1)
+            go enviarMensaje(servidor, numero_llaves, &wg)
+        }
+
+        wg.Wait()
+		var count = 0
+		desiredMessageCount := 4
 		for d := range msgs {
 			log.Printf("Received a message: %s", d.Body)
 			partes_mensaje := strings.Split(string(d.Body), ",")
@@ -189,45 +187,37 @@ func main() {
 			if numero_llaves > 0 {
 				resultado := numero_llaves - interesados
 				if resultado < 0 {
-					var wg sync.WaitGroup
-					//Se ocuparon todas las llaves, entonces se envian todas las llaves restantes a ese servidor y se dejan 0 en la central
-					wg.Add(1)
-					enviarInscripcion(-resultado, strconv.Itoa(puerto), &wg)
+
+					//Se ocuparon todas las llaves, entonces se envian todas las llaves restantes a ese servidor y se dejan 0 en la centralv
+					enviarInscripcion(-resultado, strconv.Itoa(puerto))
 					numero_llaves = 0
+					count++
 				} else if resultado > 0 {
-					var wg sync.WaitGroup
 					//Se ocuparon llaves pero no todas
-					wg.Add(1)
-					enviarInscripcion(0, strconv.Itoa(puerto), &wg)
-					numero_llaves = numero_llaves - interesados
+
+					enviarInscripcion(0, strconv.Itoa(puerto))
+					numero_llaves = resultado
+					count++
 				} else {
+
 					//cantidad de llaves = interesados
-					var wg sync.WaitGroup
-					wg.Add(1)
-					enviarInscripcion(0, strconv.Itoa(puerto), &wg)
-					numero_llaves = numero_llaves - interesados
+					enviarInscripcion(0, strconv.Itoa(puerto))
+					numero_llaves = 0
+					count++
 				}
-				wg.Wait()
-				count++
 				if count >= desiredMessageCount {
-					// Close the channel and exit the goroutine
-					ch.Close()
 					break
 				}
 			} else {
-				enviarInscripcion(interesados, strconv.Itoa(puerto), &wg)
-
+				enviarInscripcion(interesados, strconv.Itoa(puerto))
 				count++
 				if count >= desiredMessageCount {
-					// Close the channel and exit the goroutine
-					ch.Close()
 					break
 				}
 			}
-			fmt.Printf("\nQuedan %d llaves aún\n", numero_llaves)
 		}
-	}()
-
-	log.Printf(" [*] Waiting for messages. To exit press CTRL+C")
-	<-forever
+		fmt.Printf("///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////")
+		numero_llaves = crearLlaves(limiteInferior, limiteSuperior)
+        // Realizar cualquier limpieza necesaria antes de la siguiente iteración
+    }
 }
