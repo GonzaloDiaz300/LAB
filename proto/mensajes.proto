@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package grpc;
 
-option go_package = "github.com/GonzaloDiaz300/LAB/proto";
+option go_package = "github.com/GonzaloDiaz300/LAB/europa/proto";
 
 message NotiReq {
     int32 solicitud = 1;

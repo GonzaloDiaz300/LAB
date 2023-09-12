@@ -1,14 +1,14 @@
-FROM golang:latest
+FROM golang:1.21.1
 
 WORKDIR /europa
 
 COPY go.mod go.sum ./
-COPY proto/*.go .
-COPY proto/europa.proto .
 
 RUN go mod download
 
-COPY main.go ./
+COPY europa/main.go ./
+
+# RUN go get github.com/GonzaloDiaz300/LAB/proto
 
 RUN go build -o europa_bin .
 

@@ -1,0 +1,15 @@
+FROM golang:1.21.1
+
+WORKDIR /america
+
+COPY go.mod go.sum ./
+
+RUN go mod download
+
+COPY america/main.go ./
+
+# RUN go get github.com/GonzaloDiaz300/LAB/proto
+
+RUN go build -o america_bin .
+
+ENTRYPOINT [ "/america/america_bin" ]

@@ -1,38 +1,39 @@
 package main
 
 import (
-	"context"
-	"net"
-	"log"
-	"time"
-	"fmt"
-	"math/rand"
 	"bufio"
+	"context"
+	"fmt"
+	"log"
 	"math"
-	"strconv"
+	"math/rand"
+	"net"
 	"os"
-	"google.golang.org/grpc"
-	pb "github.com/GonzaloDiaz300/LAB/america/proto"
+	"strconv"
+	"time"
+
+	pb "github.com/GonzaloDiaz300/LAB/proto"
 	amqp "github.com/rabbitmq/amqp091-go"
+	"google.golang.org/grpc"
 )
 
 var interesados int // Variable global para modificar los interesados en obtener la key
 var interesados_actuales = 0
 
-type america struct{
+type america struct {
 	pb.UnimplementedNotificacionServer
 }
 
 func failOnError(err error, msg string) {
 	if err != nil {
-	  log.Panicf("%s: %s", msg, err)
+		log.Panicf("%s: %s", msg, err)
 	}
 }
 
 func (a america) Inscribir(ctx context.Context, in *pb.InscritosReq) (*pb.InscritosResp, error) {
-    fmt.Printf("Se recibe inscripciones que no lograron pasar la cola\n")
-	interesados_actuales = interesados_actuales - (interesados - int(in.Solicitud_2))//700 = 700-(290-190)=600
-    return &pb.InscritosResp{Respuesta_2: 1}, nil
+	fmt.Printf("Se recibe inscripciones que no lograron pasar la cola\n")
+	interesados_actuales = interesados_actuales - (interesados - int(in.Solicitud_2)) //700 = 700-(290-190)=600
+	return &pb.InscritosResp{Respuesta_2: 1}, nil
 }
 
 func (a *america) Notificar(ctx context.Context, in *pb.NotiReq) (*pb.NotiResp, error) {
@@ -43,7 +44,7 @@ func (a *america) Notificar(ctx context.Context, in *pb.NotiReq) (*pb.NotiResp, 
 }
 
 // funcion para generar el numero de interesados en cada iteración, se llama cuando llaman la funcion de notificar
-func crearInteresados (no_registrados int) int {
+func crearInteresados(no_registrados int) int {
 	if interesados_actuales == 0 {
 		fileName := "america/parametros_de_inicio.txt"
 
@@ -65,7 +66,7 @@ func crearInteresados (no_registrados int) int {
 			if err != nil {
 				fmt.Println("Error al convertir a entero:", err)
 			}
-			interesados_actuales = intValue//700
+			interesados_actuales = intValue //700
 			// Almacenar el valor entero globalmente
 		}
 		interesados = interesados_actuales / 2
@@ -81,17 +82,17 @@ func crearInteresados (no_registrados int) int {
 
 	interesados = numeroAleatorio
 	fmt.Println("Valor entero global:", interesados)
-	return interesados//cambio
+	return interesados //cambio
 }
 
-func encolarse(cupos int){
+func encolarse(cupos int) {
 	postulantes_finales := crearInteresados(cupos)
 	//then connect to RabbitMQ server
 	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
 	failOnError(err, "Failed to connect to RabbitMQ")
 	defer conn.Close()
-	//The connection abstracts the socket connection, and takes care of protocol version negotiation 
-	//and authentication and so on for us. Next we create a channel, which is where most of the API 
+	//The connection abstracts the socket connection, and takes care of protocol version negotiation
+	//and authentication and so on for us. Next we create a channel, which is where most of the API
 	//for getting things done resides:
 	ch, err := conn.Channel()
 	failOnError(err, "Failed to open a channel")
@@ -104,34 +105,34 @@ func encolarse(cupos int){
 		false,   // exclusive
 		false,   // no-wait
 		nil,     // arguments
-	  )
-	  failOnError(err, "Failed to declare a queue")
-	  
-	  ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	  defer cancel()
-	  message := fmt.Sprintf("%d,%d", 50051, postulantes_finales)
-	  body := []byte(message)
-	  err = ch.PublishWithContext(ctx,
+	)
+	failOnError(err, "Failed to declare a queue")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	message := fmt.Sprintf("%d,%d", 50051, postulantes_finales)
+	body := []byte(message)
+	err = ch.PublishWithContext(ctx,
 		"",     // exchange
 		q.Name, // routing key
 		false,  // mandatory
 		false,  // immediate
-		amqp.Publishing {
-		  ContentType: "text/plain",
-		  Body:        body,
+		amqp.Publishing{
+			ContentType: "text/plain",
+			Body:        body,
 		})
-	  failOnError(err, "Failed to publish a message")
-	  log.Printf(" [x] Sent %s\n", body)
+	failOnError(err, "Failed to publish a message")
+	log.Printf(" [x] Sent %s\n", body)
 }
 
-func main(){
+func main() {
 	listner, err := net.Listen("tcp", ":50051")
 
 	if err != nil {
 		panic("cannot create tcp connection" + err.Error())
 	}
 
-	serv:= grpc.NewServer()
+	serv := grpc.NewServer()
 	fmt.Printf("Servidor America Activo\n")
 	pb.RegisterNotificacionServer(serv, &america{})
 	if err = serv.Serve(listner); err != nil {

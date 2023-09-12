@@ -1,42 +1,43 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"fmt"
-	"sync"
 	"log"
-	"os"
-	"bufio"
-	"strconv"
 	"math/rand"
-	"time"
+	"os"
+	"strconv"
 	"strings"
-	pb "github.com/GonzaloDiaz300/LAB/central/proto"
-	"google.golang.org/grpc"
+	"sync"
+	"time"
+
+	pb "github.com/GonzaloDiaz300/LAB/proto"
 	amqp "github.com/rabbitmq/amqp091-go"
+	"google.golang.org/grpc"
 )
 
 func failOnError(err error, msg string) {
 	if err != nil {
-	  log.Panicf("%s: %s", msg, err)
+		log.Panicf("%s: %s", msg, err)
 	}
-  }
+}
 
 func enviarMensaje(servidor string, mensaje int, wg *sync.WaitGroup) {
-    defer wg.Done()
-    // Aquí puedes implementar la lógica para enviar el mensaje al servidor especificado
+	defer wg.Done()
+	// Aquí puedes implementar la lógica para enviar el mensaje al servidor especificado
 	conn, err := grpc.Dial("localhost:"+servidor, grpc.WithInsecure())
 	if err != nil {
-        fmt.Printf("Error al conectar con %s: %v\n", servidor, err)
-        return
-    }
-    defer conn.Close()
+		fmt.Printf("Error al conectar con %s: %v\n", servidor, err)
+		return
+	}
+	defer conn.Close()
 	serviceClient := pb.NewNotificacionClient(conn)
 	res, err := serviceClient.Notificar(context.Background(), &pb.NotiReq{Solicitud: 100})
 	if err != nil {
 		panic("No se llego el mensaje " + err.Error())
 	}
-    fmt.Printf("Enviando mensaje a %s: %d\n", servidor, mensaje)
+	fmt.Printf("Enviando mensaje a %s: %d\n", servidor, mensaje)
 	fmt.Printf("Se recibió %d\n ", res.Respuesta)
 }
 
@@ -56,8 +57,8 @@ var numero_llaves int
 var limiteInferior int
 var limiteSuperior int
 
-func main(){
-	
+func main() {
+
 	// Esto solo se hace la primera vez, por eso la condicional de contador < 1, asigna variables como el limite superior e inferior, el numero de iteraciones
 	// y el numero de llaves de la primera iteración
 	if contador < 1 {
@@ -111,14 +112,14 @@ func main(){
 
 	//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-	servidores := []string{"50051","50052","50056","50054"}
+	servidores := []string{"50051", "50052", "50056", "50054"}
 	var wg sync.WaitGroup
 	for _, servidor := range servidores {
-        wg.Add(1)
-        go enviarMensaje(servidor, numero_llaves, &wg)
-    }
+		wg.Add(1)
+		go enviarMensaje(servidor, numero_llaves, &wg)
+	}
 
-    wg.Wait()
+	wg.Wait()
 
 	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
 	failOnError(err, "Failed to connect to RabbitMQ")
@@ -131,15 +132,15 @@ func main(){
 	//and declare the queue from which we're going to consume. Note this matches up
 	//with the queue that send publishes to.
 	q, err := ch.QueueDeclare(
-	"hello", // name
-	false,   // durable
-	false,   // delete when unused
-	false,   // exclusive
-	false,   // no-wait
-	nil,     // arguments
+		"hello", // name
+		false,   // durable
+		false,   // delete when unused
+		false,   // exclusive
+		false,   // no-wait
+		nil,     // arguments
 	)
 	failOnError(err, "Failed to declare a queue")
-	//We're about to tell the server to deliver us the messages from the queue. Since it will push us messages asynchronously, 
+	//We're about to tell the server to deliver us the messages from the queue. Since it will push us messages asynchronously,
 	//we will read the messages from a channel (returned by amqp::Consume) in a goroutine.
 	msgs, err := ch.Consume(
 		q.Name, // queue
@@ -149,54 +150,54 @@ func main(){
 		false,  // no-local
 		false,  // no-wait
 		nil,    // args
-	  )
-	  failOnError(err, "Failed to register a consumer")
-	  
-	  var count int
-	  desiredMessageCount := 4
-	  
-	  go func() {
-		  for d := range msgs {
-			  log.Printf("Received a message: %s", d.Body)
-			  partes_mensaje := strings.Split(string(d.Body), ",")
-			  puerto, err1 := strconv.Atoi(partes_mensaje[0])
-			  if err1 != nil {
+	)
+	failOnError(err, "Failed to register a consumer")
+
+	var count int
+	desiredMessageCount := 4
+
+	go func() {
+		for d := range msgs {
+			log.Printf("Received a message: %s", d.Body)
+			partes_mensaje := strings.Split(string(d.Body), ",")
+			puerto, err1 := strconv.Atoi(partes_mensaje[0])
+			if err1 != nil {
 				fmt.Printf("Error al splitear mensaje")
 				return
-			  }
-			  interesados, err2 := strconv.Atoi(partes_mensaje[1])
-			  if err2 != nil {
+			}
+			interesados, err2 := strconv.Atoi(partes_mensaje[1])
+			if err2 != nil {
 				fmt.Printf("Error al splitear mensaje")
 				return
-			  }
-			  if numero_llaves > 0{
+			}
+			if numero_llaves > 0 {
 				resultado := numero_llaves - interesados
-				if resultado < 0{
+				if resultado < 0 {
 					//Se ocuparon todas las llaves, entonces se envian todas las llaves restantes a ese servidor y se dejan 0 en la central
-					enviarInscripcion(numero_llaves,puerto)
+					enviarInscripcion(numero_llaves, puerto)
 					numero_llaves := 0
-				}else if resultado > 0{
+				} else if resultado > 0 {
 					//Se ocuparon llaves pero no todas
-					enviarInscripcion(resultado,puerto)
-				}else{
+					enviarInscripcion(resultado, puerto)
+				} else {
 					//cantidad de llaves = interesados
-					enviarInscripcion(resultado,puerto)
+					enviarInscripcion(resultado, puerto)
 				}
-				count++
-			  	if count >= desiredMessageCount {
-					// Close the channel and exit the goroutine
-					ch.Close()
-					break
-				}
-			  }else{
 				count++
 				if count >= desiredMessageCount {
 					// Close the channel and exit the goroutine
 					ch.Close()
 					break
 				}
-			  }
+			} else {
+				count++
+				if count >= desiredMessageCount {
+					// Close the channel and exit the goroutine
+					ch.Close()
+					break
+				}
+			}
 
-			  }
-	  }()
+		}
+	}()
 }

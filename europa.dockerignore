@@ -1,0 +1,9 @@
+#Ignore git and cache
+.git
+.cache
+
+#Ignore markdowns
+*.md
+
+#Ignore all other folders
+central
