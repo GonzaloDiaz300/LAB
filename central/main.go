@@ -215,6 +215,8 @@ func main() {
 					break
 				}
 			} else {
+				enviarInscripcion(interesados, strconv.Itoa(puerto), &wg)
+
 				count++
 				if count >= desiredMessageCount {
 					// Close the channel and exit the goroutine
