@@ -76,7 +76,7 @@ var limiteInferior int
 var limiteSuperior int
 
 func main() {
-    // El código de configuración inicial (lectura de archivo, inicialización de variables, etc.) permanece igual
+	// El código de configuración inicial (lectura de archivo, inicialización de variables, etc.) permanece igual
 	totalIteraciones := 0
 	if contador < 1 {
 		// Abre el archivo para lectura
@@ -155,20 +155,20 @@ func main() {
 		nil,    // args
 	)
 	failOnError(err, "Failed to register a consumer")
-	
-    for iteracion := 0; iteracion < totalIteraciones; iteracion++ {
-        // Lógica de cada iteración aquí
+
+	for iteracion := 0; iteracion < totalIteraciones; iteracion++ {
+		// Lógica de cada iteración aquí
 		log.Printf("Received a message: %d", iteracion)
-        // Avisa a los servidores que tiene cupo mediante comunicación asíncrona
+		// Avisa a los servidores que tiene cupo mediante comunicación asíncrona
 
-        servidores := []string{"50051", "50052", "50056", "50054"}
-        var wg sync.WaitGroup
-        for _, servidor := range servidores {
-            wg.Add(1)
-            go enviarMensaje(servidor, numero_llaves, &wg)
-        }
+		servidores := []string{"50051", "50052", "50056", "50054"}
+		var wg sync.WaitGroup
+		for _, servidor := range servidores {
+			wg.Add(1)
+			go enviarMensaje(servidor, numero_llaves, &wg)
+		}
 
-        wg.Wait()
+		wg.Wait()
 		var count = 0
 		desiredMessageCount := 4
 		for d := range msgs {
@@ -218,6 +218,6 @@ func main() {
 		}
 		fmt.Printf("///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////")
 		numero_llaves = crearLlaves(limiteInferior, limiteSuperior)
-        // Realizar cualquier limpieza necesaria antes de la siguiente iteración
-    }
+		// Realizar cualquier limpieza necesaria antes de la siguiente iteración
+	}
 }
