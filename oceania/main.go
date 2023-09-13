@@ -99,7 +99,7 @@ func crearInteresados(no_registrados int) int {
 func encolarse(cupos int) {
 	postulantes_finales := crearInteresados(cupos)
 	//then connect to RabbitMQ server
-	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+	conn, err := amqp.Dial("amqp://guest:guest@172.17.0.1:5672/")
 	failOnError(err, "Failed to connect to RabbitMQ")
 	defer conn.Close()
 	//The connection abstracts the socket connection, and takes care of protocol version negotiation

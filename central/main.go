@@ -145,7 +145,7 @@ func main() {
 	numero_llaves = crearLlaves(limiteInferior, limiteSuperior)
 
 	// Abre la cola rabbit para permitir una comunicación asíncrona
-	conn, err := amqp.Dial("amqp://guest:guest@localhost:5672/")
+	conn, err := amqp.Dial("amqp://guest:guest@172.17.0.1:5672/")
 	failOnError(err, "Failed to connect to RabbitMQ")
 	defer conn.Close()
 
