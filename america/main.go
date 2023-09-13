@@ -19,6 +19,7 @@ import (
 
 var interesados int // Variable global para modificar los interesados en obtener la key
 var interesados_actuales = 0
+var archivo_leido = false
 
 type america struct {
 	pb.UnimplementedNotificacionServer
@@ -31,22 +32,22 @@ func failOnError(err error, msg string) {
 }
 
 // Puerto 50051
-func (a america) Inscribir(ctx context.Context, in *pb.InscritosReq) (*pb.InscritosResp, error) {
-	fmt.Printf("Se recibe inscripciones que no lograron pasar la cola\n")
+func (a *america) Inscribir(ctx context.Context, in *pb.InscritosReq) (*pb.InscritosResp, error) {
 	interesados_actuales = interesados_actuales - (interesados - int(in.Solicitud_2)) //700 = 700-(290-190)=600
+	fmt.Printf("Se incribieron %d personas\n", (interesados - int(in.Solicitud_2)))
+	fmt.Printf("Quedaron %d personas en espera de cupo\n", interesados_actuales)
 	return &pb.InscritosResp{Respuesta_2: 5}, nil
 }
 
 func (a *america) Notificar(ctx context.Context, in *pb.NotiReq) (*pb.NotiResp, error) {
-	fmt.Printf("Se envia el 1 de vuelta a la central para confirmar llegada de mensaje\n")
 	//aqui deberia procesarse la request
-	go encolarse(0)
+	go encolarse(int(in.Solicitud))
 	return &pb.NotiResp{Respuesta: 1}, nil
 }
 
 // funcion para generar el numero de interesados en cada iteración, se llama cuando llaman la funcion de notificar
 func crearInteresados(no_registrados int) int {
-	if interesados_actuales == 0 {
+	if !archivo_leido {
 		fileName := "america/parametros_de_inicio.txt"
 
 		// Intenta abrir el archivo
@@ -70,8 +71,9 @@ func crearInteresados(no_registrados int) int {
 			interesados_actuales = intValue //700
 			// Almacenar el valor entero globalmente
 		}
-		interesados = interesados_actuales / 2
+		archivo_leido = true
 	}
+	interesados = interesados_actuales / 2
 	limiteInferior_interesados := math.Round(float64(interesados) - (float64(interesados) * 0.2))
 	limiteSuperior_interesados := math.Round(float64(interesados) + (float64(interesados) * 0.2))
 
@@ -79,11 +81,19 @@ func crearInteresados(no_registrados int) int {
 	rand.Seed(time.Now().UnixNano())
 	// Genera un número aleatorio dentro del rango
 	numeroAleatorio := rand.Intn(int(limiteSuperior_interesados)-int(limiteInferior_interesados)+1) + int(limiteInferior_interesados)
-	fmt.Printf("Número aleatorio dentro del rango [%d, %d]: %d\n", int(limiteInferior_interesados), int(limiteSuperior_interesados), numeroAleatorio)
 
-	interesados = numeroAleatorio
-	fmt.Println("Valor entero global:", interesados)
-	return interesados //cambio
+	if interesados_actuales == 1 {
+		interesados = 1
+	} else {
+		interesados = numeroAleatorio
+	}
+	if interesados_actuales <= 0 {
+		fmt.Printf("Hay %d personas interesadas en acceder a la beta\n", interesados_actuales)
+		return -1
+	} else {
+		fmt.Printf("Hay %d personas interesadas en acceder a la beta\n", interesados_actuales)
+		return interesados //cambio
+	}
 }
 
 func encolarse(cupos int) {
@@ -123,7 +133,6 @@ func encolarse(cupos int) {
 			Body:        body,
 		})
 	failOnError(err, "Failed to publish a message")
-	log.Printf(" [x] Sent %s\n", body)
 }
 
 func main() {
