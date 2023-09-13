@@ -83,6 +83,7 @@ var limiteInferior int
 var limiteSuperior int
 
 func main() {
+	inicio := time.Now()
 	// El código de configuración inicial (lectura de archivo, inicialización de variables, etc.) permanece igual
 	totalIteraciones := 0
 
@@ -360,4 +361,8 @@ func main() {
 			// Realizar cualquier limpieza necesaria antes de la siguiente iteración
 		}
 	}
+	fin := time.Now()
+	duracion := fin.Sub(inicio)
+
+	fmt.Printf("El programa tardó %s en ejecutarse.\n", duracion)
 }
