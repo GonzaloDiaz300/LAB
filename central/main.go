@@ -45,7 +45,20 @@ func enviarMensaje(servidor string, mensaje int, wg *sync.WaitGroup) {
 }
 
 func enviarInscripcion(mensaje int, servidor string) {
-	conn, err := grpc.Dial("localhost:"+servidor, grpc.WithInsecure())
+
+	var ip string
+
+	if servidor == "50051" {
+		ip = "10.6.46.90:"
+	} else if servidor == "50052" {
+		ip = "10.6.46.87:"
+	} else if servidor == "50054" {
+		ip = "10.6.46.89:"
+	} else {
+		ip = "10.6.46.88:"
+	}
+
+	conn, err := grpc.Dial(ip+servidor, grpc.WithInsecure())
 	if err != nil {
 		fmt.Printf("Error al conectar con %s: %v\n", servidor, err)
 		return
