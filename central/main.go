@@ -28,7 +28,7 @@ var flag bool
 func enviarMensaje(servidor string, mensaje int, wg *sync.WaitGroup) {
 	defer wg.Done()
 	// Aquí puedes implementar la lógica para enviar el mensaje al servidor especificado
-	conn, err := grpc.Dial("localhost:"+servidor, grpc.WithInsecure())
+	conn, err := grpc.Dial(servidor, grpc.WithInsecure())
 	if err != nil {
 		fmt.Printf("Error al conectar con %s: %v\n", servidor, err)
 		return
@@ -173,7 +173,7 @@ func main() {
 			/*log.Printf("Received a message: %d", iteracion)*/
 			// Avisa a los servidores que tiene cupo mediante comunicación asíncrona
 
-			servidores := []string{"50051", "50052", "50056", "50054"}
+			servidores := []string{"10.6.46.90:50051", "10.6.46.87:50052", "10.6.46.88:50056", "10.6.46.89:50054"}
 			var wg sync.WaitGroup
 			for _, servidor := range servidores {
 				wg.Add(1)
@@ -275,7 +275,7 @@ func main() {
 			/*log.Printf("Received a message: %d", iteracion)*/
 			// Avisa a los servidores que tiene cupo mediante comunicación asíncrona
 
-			servidores := []string{"50051", "50052", "50056", "50054"}
+			servidores := []string{"10.6.46.90:50051", "10.6.46.87:50052", "10.6.46.88:50056", "10.6.46.89:50054"}
 			var wg sync.WaitGroup
 			for _, servidor := range servidores {
 				wg.Add(1)
