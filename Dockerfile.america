@@ -6,7 +6,7 @@ COPY go.mod go.sum ./
 
 RUN go mod download
 
-COPY america/parametros_de_inicio.txt ./
+COPY america/parametros_de_inicio.txt ./america/
 COPY america/main.go ./
 
 RUN go build -o america_bin .

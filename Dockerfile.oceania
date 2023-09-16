@@ -6,7 +6,7 @@ COPY go.mod go.sum ./
 
 RUN go mod download
 
-COPY oceania/parametros_de_inicio.txt ./
+COPY oceania/parametros_de_inicio.txt ./oceania/
 COPY oceania/main.go ./
 
 RUN go build -o oceania_bin .

@@ -6,7 +6,7 @@ COPY go.mod go.sum ./
 
 RUN go mod download
 
-COPY europa/parametros_de_inicio.txt ./
+COPY europa/parametros_de_inicio.txt ./europa/
 COPY europa/main.go ./
 
 RUN go build -o europa_bin .

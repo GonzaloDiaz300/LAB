@@ -6,7 +6,7 @@ COPY go.mod go.sum ./
 
 RUN go mod download
 
-COPY asia/parametros_de_inicio.txt ./
+COPY asia/parametros_de_inicio.txt ./asia/
 COPY asia/main.go ./
 
 RUN go build -o asia_bin .

@@ -6,7 +6,7 @@ COPY go.mod go.sum ./
 
 RUN go mod download
 
-COPY central/parametros_de_inicio.txt ./
+COPY central/parametros_de_inicio.txt ./central/
 COPY central/main.go ./
 
 RUN go build -o central_bin .
