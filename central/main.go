@@ -48,14 +48,20 @@ func enviarInscripcion(mensaje int, servidor string) {
 
 	var ip string
 
+	//servidores := []string{"dist080:50051", "dist077:50052", "dist078:50056", "dist079:50054"}
+
 	if servidor == "50051" {
-		ip = "10.6.46.90:"
+		// ip = "10.6.46.90:"
+		ip = "dist080:"
 	} else if servidor == "50052" {
-		ip = "10.6.46.87:"
+		// ip = "10.6.46.87:"
+		ip = "dist077:"
 	} else if servidor == "50054" {
-		ip = "10.6.46.89:"
+		// ip = "10.6.46.89:"
+		ip = "dist079:"
 	} else {
-		ip = "10.6.46.88:"
+		// ip = "10.6.46.88:"
+		ip = "dist078:"
 	}
 
 	conn, err := grpc.Dial(ip+servidor, grpc.WithInsecure())
@@ -145,7 +151,7 @@ func main() {
 	numero_llaves = crearLlaves(limiteInferior, limiteSuperior)
 
 	// Abre la cola rabbit para permitir una comunicación asíncrona
-	conn, err := amqp.Dial("amqp://guest:guest@172.17.0.1:5672/")
+	conn, err := amqp.Dial("amqp://guest:guest@dist078:5673/")
 	failOnError(err, "Failed to connect to RabbitMQ")
 	defer conn.Close()
 
@@ -186,7 +192,7 @@ func main() {
 			/*log.Printf("Received a message: %d", iteracion)*/
 			// Avisa a los servidores que tiene cupo mediante comunicación asíncrona
 
-			servidores := []string{"10.6.46.90:50051", "10.6.46.87:50052", "10.6.46.88:50056", "10.6.46.89:50054"}
+			servidores := []string{"dist080:50051", "dist077:50052", "dist078:50056", "dist079:50054"}
 			var wg sync.WaitGroup
 			for _, servidor := range servidores {
 				wg.Add(1)
@@ -206,13 +212,13 @@ func main() {
 					nombre_servidor = "América"
 					fmt.Printf("Mensaje asíncrono del servidor %s leído\n", nombre_servidor)
 				} else if puerto == 50052 {
-					nombre_servidor = "Oceanía"
+					nombre_servidor = "Asia"
 					fmt.Printf("Mensaje asíncrono del servidor %s leído\n", nombre_servidor)
 				} else if puerto == 50054 {
-					nombre_servidor = "Europa"
+					nombre_servidor = "Oceania"
 					fmt.Printf("Mensaje asíncrono del servidor %s leído\n", nombre_servidor)
 				} else {
-					nombre_servidor = "Asia"
+					nombre_servidor = "Europa"
 					fmt.Printf("Mensaje asíncrono del servidor %s leído\n", nombre_servidor)
 				}
 
@@ -288,7 +294,7 @@ func main() {
 			/*log.Printf("Received a message: %d", iteracion)*/
 			// Avisa a los servidores que tiene cupo mediante comunicación asíncrona
 
-			servidores := []string{"10.6.46.90:50051", "10.6.46.87:50052", "10.6.46.88:50056", "10.6.46.89:50054"}
+			servidores := []string{"dist080:50051", "dist077:50052", "dist078:50056", "dist079:50054"}
 			var wg sync.WaitGroup
 			for _, servidor := range servidores {
 				wg.Add(1)
@@ -308,13 +314,13 @@ func main() {
 					nombre_servidor = "América"
 					fmt.Printf("Mensaje asíncrono del servidor %s leído\n", nombre_servidor)
 				} else if puerto == 50052 {
-					nombre_servidor = "Oceanía"
+					nombre_servidor = "Aisa"
 					fmt.Printf("Mensaje asíncrono del servidor %s leído\n", nombre_servidor)
 				} else if puerto == 50054 {
-					nombre_servidor = "Europa"
+					nombre_servidor = "Oceania"
 					fmt.Printf("Mensaje asíncrono del servidor %s leído\n", nombre_servidor)
 				} else {
-					nombre_servidor = "Asia"
+					nombre_servidor = "Europa"
 					fmt.Printf("Mensaje asíncrono del servidor %s leído\n", nombre_servidor)
 				}
 

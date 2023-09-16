@@ -5,7 +5,7 @@ docker-central:
 
 #Descarga la imagen de la cola rabbit de dockerhub y la inicia
 docker-rabbit:
-	docker run -d --hostname rmq --name rabbit-server -p 8080:15672 -p 5672:5672 --network="host" rabbitmq:3-management
+	docker run -d --hostname rmq --name rabbit-server -p 15673:15672 -p 5673:5672 --network="host" rabbitmq:3-management
 
 #Genera todas las imagenes de los servidores regionales.
 docker-regional:
